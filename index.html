@@ -1,8 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>캐릭터 커스터마이저</title>
 
 <style>
@@ -13,7 +15,7 @@
     body {
         margin: 0;
         min-height: 100vh;
-        background: #f2f2f2;
+        background: #eeeeee;
         font-family: sans-serif;
 
         display: flex;
@@ -28,87 +30,231 @@
         border-radius: 20px;
     }
 
-    /* 캐릭터를 겹쳐서 표시하는 영역 */
+
+    /* =========================================
+       캐릭터 영역
+    ========================================= */
+
     .character {
         position: relative;
+
         width: min(500px, 80vw);
         aspect-ratio: 1 / 1;
+
         margin: 0 auto 30px;
     }
 
-    .character img {
+    /*
+       모든 레이어는 같은 크기와 위치에 겹쳐짐.
+       PNG들의 캔버스 크기가 동일해야 정확하게 맞음.
+    */
+    .character img,
+    .color-layer {
         position: absolute;
+
         inset: 0;
+
         width: 100%;
         height: 100%;
+
         object-fit: contain;
+
         pointer-events: none;
     }
 
-    /* 몸체 */
-    .body-layer {
+
+    /* =========================================
+       001 몸체
+    ========================================= */
+
+    .body-image {
         z-index: 1;
     }
 
-    /* 입 */
-    .mouth-layer {
+    /*
+       몸 색상 레이어
+
+       001.png의 투명도를 마스크로 사용해서
+       몸체 부분에만 색상이 들어감.
+    */
+    .body-color {
         z-index: 2;
+
+        background: #f0b090;
+
+        /*
+           Multiply = 곱하기
+           원본 몸체의 명암을 살리면서 색을 입힘
+        */
+        mix-blend-mode: multiply;
+
+        /*
+           001.png의 알파 영역을 그대로 마스크로 사용
+        */
+        -webkit-mask-image: url("./images/001.png");
+        mask-image: url("./images/001.png");
+
+        -webkit-mask-size: contain;
+        mask-size: contain;
+
+        -webkit-mask-position: center;
+        mask-position: center;
+
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
     }
 
-    /* 눈 */
-    .eyes-layer {
+
+    /* =========================================
+       입
+    ========================================= */
+
+    .mouth-layer {
         z-index: 3;
     }
+
+
+    /* =========================================
+       눈
+    ========================================= */
+
+    .eyes-layer {
+        z-index: 4;
+    }
+
+    /*
+       선택된 눈 이미지의 투명 영역을
+       색상 레이어의 마스크로 사용
+    */
+    .eyes-color {
+        z-index: 5;
+
+        background: #4a8cff;
+
+        /*
+           현재 선택된 눈 이미지의 알파값을
+           JS에서 이곳의 mask-image로 지정함.
+        */
+        -webkit-mask-size: contain;
+        mask-size: contain;
+
+        -webkit-mask-position: center;
+        mask-position: center;
+
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+    }
+
+
+    /* =========================================
+       컨트롤
+    ========================================= */
 
     .controls {
         display: grid;
         gap: 25px;
     }
 
+    .control-group {
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+    }
+
     .control-group h2 {
         margin: 0 0 12px;
+
         font-size: 18px;
     }
 
+
     .options {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
     }
 
+
     button {
-        padding: 10px 16px;
+        padding: 9px 15px;
+
         border: 1px solid #ccc;
-        background: white;
         border-radius: 10px;
+
+        background: white;
+
         cursor: pointer;
+
         font-size: 14px;
     }
 
     button:hover {
-        background: #eee;
+        background: #eeeeee;
     }
 
     button.selected {
         background: #222;
         color: white;
+        border-color: #222;
     }
+
+
+    /* =========================================
+       색상 선택
+    ========================================= */
+
+    .color-control {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .color-control input[type="color"] {
+        width: 55px;
+        height: 40px;
+
+        padding: 2px;
+
+        border: 1px solid #ccc;
+        border-radius: 8px;
+
+        cursor: pointer;
+    }
+
+    .color-value {
+        font-family: monospace;
+        font-size: 14px;
+    }
+
 </style>
 </head>
+
 
 <body>
 
 <div class="container">
 
-    <!-- 캐릭터 -->
+
+    <!-- =====================================
+         캐릭터
+    ====================================== -->
+
     <div class="character">
 
-        <!-- 기본 몸체 -->
+        <!-- 001 : 기본 몸체 -->
         <img
-            class="body-layer"
+            id="bodyImage"
+            class="body-image"
             src="./images/001.png"
             alt="몸체"
         >
+
+
+        <!-- 몸 색상 레이어 -->
+        <div
+            id="bodyColor"
+            class="color-layer body-color"
+        ></div>
+
 
         <!-- 입 -->
         <img
@@ -118,6 +264,7 @@
             alt="입"
         >
 
+
         <!-- 눈 -->
         <img
             id="eyes"
@@ -126,99 +273,328 @@
             alt="눈"
         >
 
+
+        <!-- 눈 색상 레이어 -->
+        <div
+            id="eyesColor"
+            class="color-layer eyes-color"
+        ></div>
+
     </div>
+
 
 
     <div class="controls">
 
-        <!-- 입 선택 -->
+
+        <!-- =================================
+             몸 색상
+        ================================== -->
+
         <div class="control-group">
+
+            <h2>몸 색상</h2>
+
+            <div class="color-control">
+
+                <input
+                    type="color"
+                    id="bodyColorPicker"
+                    value="#f0b090"
+                >
+
+                <span
+                    id="bodyColorValue"
+                    class="color-value"
+                >
+                    #f0b090
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================
+             입
+        ================================== -->
+
+        <div class="control-group">
+
             <h2>입</h2>
 
             <div class="options">
 
-                <button onclick="changeMouth(2, this)">
+                <button
+                    class="selected"
+                    onclick="changeMouth(2, this)"
+                >
                     입 1
                 </button>
 
-                <button onclick="changeMouth(3, this)">
+                <button
+                    onclick="changeMouth(3, this)"
+                >
                     입 2
                 </button>
 
-                <button onclick="changeMouth(4, this)">
+                <button
+                    onclick="changeMouth(4, this)"
+                >
                     입 3
                 </button>
 
             </div>
+
         </div>
 
 
-        <!-- 눈 선택 -->
+
+        <!-- =================================
+             눈
+        ================================== -->
+
         <div class="control-group">
+
             <h2>눈</h2>
 
             <div class="options">
 
-                <button onclick="changeEyes(5, this)">
+                <button
+                    class="selected"
+                    onclick="changeEyes(5, this)"
+                >
                     눈 1
                 </button>
 
-                <button onclick="changeEyes(6, this)">
+                <button
+                    onclick="changeEyes(6, this)"
+                >
                     눈 2
                 </button>
 
-                <button onclick="changeEyes(7, this)">
+                <button
+                    onclick="changeEyes(7, this)"
+                >
                     눈 3
                 </button>
 
-                <button onclick="changeEyes(8, this)">
+                <button
+                    onclick="changeEyes(8, this)"
+                >
                     눈 4
                 </button>
 
-                <button onclick="changeEyes(9, this)">
+                <button
+                    onclick="changeEyes(9, this)"
+                >
                     눈 5
                 </button>
 
             </div>
+
         </div>
+
+
+
+        <!-- =================================
+             눈 색상
+        ================================== -->
+
+        <div class="control-group">
+
+            <h2>눈 색상</h2>
+
+            <div class="color-control">
+
+                <input
+                    type="color"
+                    id="eyesColorPicker"
+                    value="#4a8cff"
+                >
+
+                <span
+                    id="eyesColorValue"
+                    class="color-value"
+                >
+                    #4a8cff
+                </span>
+
+            </div>
+
+        </div>
+
 
     </div>
 
 </div>
 
 
+
 <script>
 
-    /* 입 변경 */
-    function changeMouth(number, button) {
+/* =========================================
+   현재 선택된 눈
+========================================= */
 
-        document.getElementById("mouth").src =
-            `./images/${String(number).padStart(3, "0")}.png`;
-
-        // 선택 표시
-        document
-            .querySelectorAll(".control-group:nth-child(1) button")
-            .forEach(btn => btn.classList.remove("selected"));
-
-        button.classList.add("selected");
-    }
+let currentEyes = 5;
 
 
-    /* 눈 변경 */
-    function changeEyes(number, button) {
+/* =========================================
+   입 변경
+========================================= */
 
-        document.getElementById("eyes").src =
-            `./images/${String(number).padStart(3, "0")}.png`;
+function changeMouth(number, button) {
 
-        // 선택 표시
-        document
-            .querySelectorAll(".control-group:nth-child(2) button")
-            .forEach(btn => btn.classList.remove("selected"));
+    const mouth = document.getElementById("mouth");
 
-        button.classList.add("selected");
-    }
+    mouth.src =
+        `./images/${String(number).padStart(3, "0")}.png`;
+
+
+    /*
+       버튼 선택 표시
+    */
+
+    button
+        .parentElement
+        .querySelectorAll("button")
+        .forEach(btn => {
+            btn.classList.remove("selected");
+        });
+
+    button.classList.add("selected");
+}
+
+
+
+/* =========================================
+   눈 변경
+========================================= */
+
+function changeEyes(number, button) {
+
+    currentEyes = number;
+
+    const eyes = document.getElementById("eyes");
+
+    const eyesColor =
+        document.getElementById("eyesColor");
+
+
+    /*
+       눈 이미지 변경
+    */
+
+    const filename =
+        `./images/${String(number).padStart(3, "0")}.png`;
+
+    eyes.src = filename;
+
+
+    /*
+       ★ 핵심 ★
+
+       현재 선택된 눈 PNG의 투명 영역을
+       색상 레이어의 마스크로 사용한다.
+    */
+
+    eyesColor.style.webkitMaskImage =
+        `url("${filename}")`;
+
+    eyesColor.style.maskImage =
+        `url("${filename}")`;
+
+
+    /*
+       버튼 선택 표시
+    */
+
+    button
+        .parentElement
+        .querySelectorAll("button")
+        .forEach(btn => {
+            btn.classList.remove("selected");
+        });
+
+    button.classList.add("selected");
+}
+
+
+
+/* =========================================
+   몸 색상 변경
+========================================= */
+
+const bodyColorPicker =
+    document.getElementById("bodyColorPicker");
+
+const bodyColor =
+    document.getElementById("bodyColor");
+
+const bodyColorValue =
+    document.getElementById("bodyColorValue");
+
+
+bodyColorPicker.addEventListener("input", () => {
+
+    const color =
+        bodyColorPicker.value;
+
+
+    bodyColor.style.background =
+        color;
+
+
+    bodyColorValue.textContent =
+        color;
+});
+
+
+
+/* =========================================
+   눈 색상 변경
+========================================= */
+
+const eyesColorPicker =
+    document.getElementById("eyesColorPicker");
+
+const eyesColor =
+    document.getElementById("eyesColor");
+
+const eyesColorValue =
+    document.getElementById("eyesColorValue");
+
+
+eyesColorPicker.addEventListener("input", () => {
+
+    const color =
+        eyesColorPicker.value;
+
+
+    eyesColor.style.background =
+        color;
+
+
+    eyesColorValue.textContent =
+        color;
+});
+
+
+
+/* =========================================
+   처음 실행할 때 눈 005의 마스크 설정
+========================================= */
+
+eyesColor.style.webkitMaskImage =
+    `url("./images/005.png")`;
+
+eyesColor.style.maskImage =
+    `url("./images/005.png")`;
 
 </script>
 
 </body>
 </html>
+```
