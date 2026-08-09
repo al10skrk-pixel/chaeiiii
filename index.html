@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캐릭터 커스터마이저</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f2f2f2;
+        font-family: sans-serif;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        width: min(900px, 95vw);
+        padding: 30px;
+        background: white;
+        border-radius: 20px;
+    }
+
+    /* 캐릭터를 겹쳐서 표시하는 영역 */
+    .character {
+        position: relative;
+        width: min(500px, 80vw);
+        aspect-ratio: 1 / 1;
+        margin: 0 auto 30px;
+    }
+
+    .character img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+    }
+
+    /* 몸체 */
+    .body-layer {
+        z-index: 1;
+    }
+
+    /* 입 */
+    .mouth-layer {
+        z-index: 2;
+    }
+
+    /* 눈 */
+    .eyes-layer {
+        z-index: 3;
+    }
+
+    .controls {
+        display: grid;
+        gap: 25px;
+    }
+
+    .control-group h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+    }
+
+    .options {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 10px 16px;
+        border: 1px solid #ccc;
+        background: white;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button:hover {
+        background: #eee;
+    }
+
+    button.selected {
+        background: #222;
+        color: white;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- 캐릭터 -->
+    <div class="character">
+
+        <!-- 기본 몸체 -->
+        <img
+            class="body-layer"
+            src="./images/001.png"
+            alt="몸체"
+        >
+
+        <!-- 입 -->
+        <img
+            id="mouth"
+            class="mouth-layer"
+            src="./images/002.png"
+            alt="입"
+        >
+
+        <!-- 눈 -->
+        <img
+            id="eyes"
+            class="eyes-layer"
+            src="./images/005.png"
+            alt="눈"
+        >
+
+    </div>
+
+
+    <div class="controls">
+
+        <!-- 입 선택 -->
+        <div class="control-group">
+            <h2>입</h2>
+
+            <div class="options">
+
+                <button onclick="changeMouth(2, this)">
+                    입 1
+                </button>
+
+                <button onclick="changeMouth(3, this)">
+                    입 2
+                </button>
+
+                <button onclick="changeMouth(4, this)">
+                    입 3
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- 눈 선택 -->
+        <div class="control-group">
+            <h2>눈</h2>
+
+            <div class="options">
+
+                <button onclick="changeEyes(5, this)">
+                    눈 1
+                </button>
+
+                <button onclick="changeEyes(6, this)">
+                    눈 2
+                </button>
+
+                <button onclick="changeEyes(7, this)">
+                    눈 3
+                </button>
+
+                <button onclick="changeEyes(8, this)">
+                    눈 4
+                </button>
+
+                <button onclick="changeEyes(9, this)">
+                    눈 5
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* 입 변경 */
+    function changeMouth(number, button) {
+
+        document.getElementById("mouth").src =
+            `./images/${String(number).padStart(3, "0")}.png`;
+
+        // 선택 표시
+        document
+            .querySelectorAll(".control-group:nth-child(1) button")
+            .forEach(btn => btn.classList.remove("selected"));
+
+        button.classList.add("selected");
+    }
+
+
+    /* 눈 변경 */
+    function changeEyes(number, button) {
+
+        document.getElementById("eyes").src =
+            `./images/${String(number).padStart(3, "0")}.png`;
+
+        // 선택 표시
+        document
+            .querySelectorAll(".control-group:nth-child(2) button")
+            .forEach(btn => btn.classList.remove("selected"));
+
+        button.classList.add("selected");
+    }
+
+</script>
+
+</body>
+</html>
